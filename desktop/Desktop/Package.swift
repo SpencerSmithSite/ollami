@@ -7,7 +7,6 @@ let package = Package(
     .macOS("14.0")
   ],
   dependencies: [
-    .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.0.0"),
     .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.24.0"),
     .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.9.0"),
     .package(url: "https://github.com/gonzalezreal/swift-markdown-ui", from: "2.4.0"),
@@ -24,8 +23,6 @@ let package = Package(
       name: "Omi Computer",
       dependencies: [
         "ObjCExceptionCatcher",
-        .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
-        .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
         .product(name: "GRDB", package: "GRDB.swift"),
         .product(name: "Sparkle", package: "Sparkle"),
         .product(name: "MarkdownUI", package: "swift-markdown-ui"),
@@ -33,7 +30,6 @@ let package = Package(
       ],
       path: "Sources",
       resources: [
-        .process("GoogleService-Info.plist"),
         .process("Resources"),
       ]
     ),
