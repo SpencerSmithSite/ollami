@@ -3,7 +3,6 @@ import Foundation
 import CryptoKit
 import AppKit
 import AuthenticationServices
-import Sentry
 
 extension Notification.Name {
     /// Posted by AuthService.signOut() so views can reset @AppStorage-backed properties directly.
@@ -338,13 +337,6 @@ class AuthService {
         AnalyticsManager.shared.signInCompleted(provider: "apple")
         APIKeyService.shared.startFetchingKeys()
 
-        if !AnalyticsManager.isDevBuild {
-            let sentryUser = User(userId: userId)
-            sentryUser.email = AuthState.shared.userEmail
-            sentryUser.username = displayName.isEmpty ? nil : displayName
-            SentrySDK.setUser(sentryUser)
-        }
-
         NSLog("OMI AUTH: Apple Sign in complete!")
         fetchConversations()
     }
@@ -453,14 +445,6 @@ class AuthService {
             AnalyticsManager.shared.identify()
             AnalyticsManager.shared.signInCompleted(provider: provider)
             APIKeyService.shared.startFetchingKeys()
-
-            // Set Sentry user context for error tracking (skip in dev builds)
-            if !AnalyticsManager.isDevBuild {
-                let sentryUser = User(userId: userId)
-                sentryUser.email = tokenResult.email
-                sentryUser.username = displayName.isEmpty ? nil : displayName
-                SentrySDK.setUser(sentryUser)
-            }
 
             NSLog("OMI AUTH: Sign in complete!")
 
@@ -1050,11 +1034,6 @@ class AuthService {
         // Track sign out and reset analytics
         AnalyticsManager.shared.signedOut()
         AnalyticsManager.shared.reset()
-
-        // Clear Sentry user context (skip in dev builds)
-        if !AnalyticsManager.isDevBuild {
-            SentrySDK.setUser(nil)
-        }
 
         try Auth.auth().signOut()
         isSignedIn = false
