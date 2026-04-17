@@ -1,6 +1,5 @@
 import FirebaseAuth
 import FirebaseCore
-import Sentry
 import Sparkle
 import SwiftUI
 
@@ -211,7 +210,6 @@ struct OMIApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
   static var openMainWindow: (() -> Void)?
 
-  private var sentryHeartbeatTimer: Timer?
   private var globalHotkeyMonitor: Any?
   private var localHotkeyMonitor: Any?
   private var windowObservers: [NSObjectProtocol] = []
@@ -286,58 +284,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     _ = UpdaterViewModel.shared
     UpdaterViewModel.shared.checkForUpdatesImmediatelyAfterLaunchIfNeeded()
 
-    // Initialize Sentry for crash reporting and error tracking (including dev builds)
-    let isDev = AnalyticsManager.isDevBuild
-    SentrySDK.start { options in
-      options.dsn =
-        "https://bbffa02d948c81ea4dccd36246c7bd20@o4511085999816704.ingest.us.sentry.io/4511086024851456"
-      options.debug = false
-      options.enableAutoSessionTracking = true
-      options.environment = isDev ? "development" : "production"
-      // Disable automatic HTTP client error capture — the SDK creates noisy events
-      // for every 4xx/5xx response (e.g. Cloud Run 503 cold starts on /v1/crisp/unread).
-      // App code already handles HTTP errors and reports meaningful ones explicitly.
-      options.enableCaptureFailedRequests = false
-      options.maxBreadcrumbs = 100
-      options.beforeSend = { event in
-        // Allow user feedback through from all builds (dev + prod)
-        if event.message?.formatted.hasPrefix("User Report") == true { return event }
-        // Never send other events from dev builds — they pollute production Sentry data
-        if isDev { return nil }
-        // Filter out HTTP errors targeting dev/local URLs — noise when tunnels or local backends are down
-        if let urlTag = event.tags?["url"],
-          urlTag.contains("localhost") || urlTag.contains("127.0.0.1")
-            || urlTag.contains("trycloudflare.com")
-        {
-          return nil
-        }
-        // Filter out NSURLErrorCancelled (-999) — these are intentional cancellations
-        // (e.g. proactive assistants cancelling in-flight Gemini requests on context switch)
-        if let exceptions = event.exceptions,
-          exceptions.contains(where: { exc in
-            let value = exc.value ?? ""
-            return exc.type == "NSURLErrorDomain" && (
-              value.contains("Code=-999") || value.contains("Code: -999")
-            )
-          })
-        {
-          return nil
-        }
-        // Filter out AuthError.notSignedIn — this is thrown when token refresh transiently
-        // fails (network blip, expired token mid-refresh). The user is still signed in per
-        // UserDefaults; the 30s refresh timer will retry. Not actionable as a Sentry error.
-        if let exceptions = event.exceptions,
-          exceptions.contains(where: { exc in
-            exc.type == "Omi_Computer.AuthError" && (exc.value ?? "").contains("notSignedIn")
-          })
-        {
-          return nil
-        }
-        return event
-      }
-    }
-    log("Sentry initialized (environment: \(isDev ? "development" : "production"))")
-
     // Initialize Firebase
     let plistPath = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist")
 
@@ -389,14 +335,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // Identify user if already signed in
     if AuthState.shared.isSignedIn {
       AnalyticsManager.shared.identify()
-      // Set Sentry user context (now enabled for dev builds too)
-      if let email = AuthState.shared.userEmail {
-        let sentryUser = Sentry.User()
-        sentryUser.email = email
-        sentryUser.username =
-          AuthService.shared.displayName.isEmpty ? nil : AuthService.shared.displayName
-        SentrySDK.setUser(sentryUser)
-      }
       // Fetch conversations on startup
       AuthService.shared.fetchConversations()
 
@@ -480,9 +418,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
       }
     }
 
-    // Start Sentry heartbeat timer (every 5 minutes) to capture breadcrumbs periodically
-    startSentryHeartbeat()
-
     // Activate app and show main window after a brief delay
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
       log("AppDelegate: Checking windows after 0.2s delay, count=\(NSApp.windows.count)")
@@ -505,20 +440,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     log("AppDelegate: applicationDidFinishLaunching completed")
-  }
-
-  /// Start a timer that sends Sentry session snapshots every 5 minutes
-  /// This ensures we have breadcrumbs captured even without errors
-  private func startSentryHeartbeat() {
-    // Now runs in dev builds too since Sentry is always initialized
-    sentryHeartbeatTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
-      // Capture a session heartbeat event with current breadcrumbs
-      SentrySDK.capture(message: "Session Heartbeat") { scope in
-        scope.setLevel(.info)
-        scope.setTag(value: "heartbeat", key: "event_type")
-      }
-      log("Sentry: Session heartbeat captured")
-    }
   }
 
   /// Strip com.apple.provenance extended attributes from our own bundle.
@@ -735,10 +656,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     guard let statusBarItem = statusBarItem else {
       log("AppDelegate: [MENUBAR] ERROR - Failed to create status bar item")
-      SentrySDK.capture(message: "Failed to create NSStatusItem") { scope in
-        scope.setLevel(.error)
-        scope.setTag(value: "menu_bar", key: "component")
-      }
       return
     }
 
@@ -1093,10 +1010,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // Stop push-to-talk
     PushToTalkManager.shared.cleanup()
 
-    // Stop heartbeat timer
-    sentryHeartbeatTimer?.invalidate()
-    sentryHeartbeatTimer = nil
-
     // Stop transcription retry service
     TranscriptionRetryService.shared.stop()
 
@@ -1109,12 +1022,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // Report final resources before termination
     ResourceMonitor.shared.reportResourcesNow(context: "app_terminating")
     ResourceMonitor.shared.stop()
-
-    // Capture final session snapshot before termination (now enabled for dev builds too)
-    SentrySDK.capture(message: "App Terminating") { scope in
-      scope.setLevel(.info)
-      scope.setTag(value: "lifecycle", key: "event_type")
-    }
   }
 
   @objc func handleGetURLEvent(
