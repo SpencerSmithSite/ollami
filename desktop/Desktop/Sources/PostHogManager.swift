@@ -5,4 +5,6 @@ import Foundation
 class PostHogManager {
   static let shared = PostHogManager()
   private init() {}
+
+  func ffmpegResolved(source: String, path: String) {}
 }
