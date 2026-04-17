@@ -25,7 +25,7 @@ See `PLAN.md` for full architecture details.
 
 ### Remaining
 
-- [ ] **1g** — Add Ollami settings panel (new SwiftUI settings section):
+- [x] **1g** — Add Ollami settings panel (new SwiftUI settings section):
   - Ollama base URL (default: `http://localhost:11434`)
   - Active model picker (fetched live from Ollama `/api/tags`)
   - Whisper model size selector (tiny / base / small / medium)
