@@ -1,5 +1,3 @@
-import FirebaseAuth
-import FirebaseCore
 import Sparkle
 import SwiftUI
 
@@ -284,15 +282,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     _ = UpdaterViewModel.shared
     UpdaterViewModel.shared.checkForUpdatesImmediatelyAfterLaunchIfNeeded()
 
-    // Initialize Firebase
-    let plistPath = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist")
-
-    if let path = plistPath,
-      let options = FirebaseOptions(contentsOfFile: path)
-    {
-      FirebaseApp.configure(options: options)
-      AuthService.shared.configure()
-    }
+    AuthService.shared.configure()
 
     // Initialize analytics (MixPanel + PostHog)
     AnalyticsManager.shared.initialize()
