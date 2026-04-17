@@ -32,7 +32,7 @@ See `PLAN.md` for full architecture details.
   - Backend URL (default: `http://localhost:8080`)
   - Plugin manager (add/remove webhook plugins by URL)
 
-- [ ] **1h** — Delete all non-desktop files from the repo — this is a macOS-only fork, not the full Omi monorepo. Remove:
+- [x] **1h** — Delete all non-desktop files from the repo — this is a macOS-only fork, not the full Omi monorepo. Remove:
   - `app/` — Flutter iOS/Android app
   - `backend/` — cloud Python backend (will be replaced by local backend in Phase 2)
   - `omi/` — firmware for the Omi wearable
