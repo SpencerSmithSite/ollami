@@ -204,19 +204,6 @@ struct ChatPage: View {
         }
       )
     }
-    .alert("Upgrade Required", isPresented: $chatProvider.showOmiThresholdAlert) {
-      Button("Upgrade to Omi Pro") {
-        chatProvider.showOmiThresholdAlert = false
-        if let url = URL(string: "https://omi.me/pricing") {
-          NSWorkspace.shared.open(url)
-        }
-      }
-      Button("Later", role: .cancel) {
-        chatProvider.showOmiThresholdAlert = false
-      }
-    } message: {
-      Text("Upgrade to Omi Pro for $199/month to continue chatting.")
-    }
     .overlay {
       // Loading overlay when fetching citation
       if isLoadingCitation {
@@ -240,52 +227,14 @@ struct ChatPage: View {
 
   private var chatHeader: some View {
     HStack {
-      // Multi-chat mode controls
+      // Chat session controls
       if chatProvider.multiChatEnabled {
-        // Default Chat indicator or button
-        if chatProvider.isInDefaultChat {
-          // Show indicator that we're in default chat
-          HStack(spacing: 6) {
-            Image(systemName: "icloud")
-              .scaledFont(size: 11)
-            Text("Synced Chat")
-              .scaledFont(size: 11, weight: .medium)
-          }
-          .foregroundColor(OmiColors.success)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 4)
-          .background(OmiColors.success.opacity(0.15))
-          .cornerRadius(6)
-          .help("This chat syncs with your mobile app")
-        } else {
-          // Show button to switch back to default chat
-          Button(action: {
-            Task {
-              await chatProvider.switchToDefaultChat()
-            }
-          }) {
-            HStack(spacing: 6) {
-              Image(systemName: "icloud")
-                .scaledFont(size: 11)
-              Text("Synced")
-                .scaledFont(size: 11, weight: .medium)
-            }
-            .foregroundColor(OmiColors.textTertiary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(OmiColors.backgroundTertiary)
-            .cornerRadius(6)
-          }
-          .buttonStyle(.plain)
-          .help("Switch to synced chat (shares messages with mobile)")
-
-          // Current session indicator
-          if let session = chatProvider.currentSession {
-            Text(session.title)
-              .scaledFont(size: 12, weight: .medium)
-              .foregroundColor(OmiColors.textSecondary)
-              .lineLimit(1)
-          }
+        // Current session indicator
+        if let session = chatProvider.currentSession, !chatProvider.isInDefaultChat {
+          Text(session.title)
+            .scaledFont(size: 12, weight: .medium)
+            .foregroundColor(OmiColors.textSecondary)
+            .lineLimit(1)
         }
 
         // New chat button
