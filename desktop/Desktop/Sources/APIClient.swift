@@ -2,35 +2,35 @@ import Foundation
 
 actor APIClient {
   static let shared = APIClient()
-  // Primary data backend URL — Python backend (api.omi.me) is the single source of truth for all data CRUD.
-  // Override via OMI_PYTHON_API_URL for local dev.
+  // Local Ollami backend URL. Override via OLLAMI_BACKEND_URL env var.
   var baseURL: String {
+    if let cString = getenv("OLLAMI_BACKEND_URL"), let url = String(validatingUTF8: cString),
+      !url.isEmpty
+    {
+      return url.hasSuffix("/") ? url : url + "/"
+    }
+    // Legacy override kept for compatibility
     if let cString = getenv("OMI_PYTHON_API_URL"), let url = String(validatingUTF8: cString),
       !url.isEmpty
     {
       return url.hasSuffix("/") ? url : url + "/"
     }
-    return "https://api.omi.me/"
+    return "http://localhost:8080/"
   }
 
-  // Rust desktop backend URL — used only for: agent VM provisioning/status,
-  // config/api-keys, Crisp, and local test subscription. All data CRUD,
-  // chat AI, and title generation are on Python.
-  // Set via OMI_API_URL env var (in .env).
+  // Secondary backend URL — routes to the same local Ollami backend.
+  // Override via OMI_API_URL env var if needed.
   var rustBackendURL: String {
-    // First check getenv() for values set by setenv() in loadEnvironment()
     if let cString = getenv("OMI_API_URL"), let url = String(validatingUTF8: cString), !url.isEmpty
     {
       let normalized = url.hasSuffix("/") ? url : url + "/"
       return normalized
     }
-    // Fallback to ProcessInfo (launch-time snapshot)
     if let envURL = ProcessInfo.processInfo.environment["OMI_API_URL"], !envURL.isEmpty {
       let normalized = envURL.hasSuffix("/") ? envURL : envURL + "/"
       return normalized
     }
-    NSLog("OMI API: OMI_API_URL not set — Rust backend calls will fail")
-    return ""
+    return "http://localhost:8080/"
   }
 
   let session: URLSession
