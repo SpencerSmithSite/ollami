@@ -1,6 +1,5 @@
 import FirebaseAuth
 import FirebaseCore
-import Mixpanel
 import Sentry
 import Sparkle
 import SwiftUI
