@@ -303,6 +303,7 @@ struct SettingsContentView: View {
     case floatingBar = "Floating Bar"
     case shortcuts = "Shortcuts"
     case advanced = "Advanced"
+    case ollami = "Ollami"
     case about = "About"
   }
 
@@ -455,6 +456,8 @@ struct SettingsContentView: View {
           shortcutsSection
         case .advanced:
           advancedSection
+        case .ollami:
+          ollamiSection
         case .about:
           aboutSection
         }
@@ -2024,6 +2027,10 @@ struct SettingsContentView: View {
 
   private var shortcutsSection: some View {
     ShortcutsSettingsSection(highlightedSettingId: $highlightedSettingId)
+  }
+
+  private var ollamiSection: some View {
+    OllamiSettingsSection(highlightedSettingId: $highlightedSettingId)
   }
 
   private var aiChatSection: some View {

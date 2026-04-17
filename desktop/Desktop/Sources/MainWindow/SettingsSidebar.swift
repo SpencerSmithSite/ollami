@@ -154,6 +154,28 @@ struct SettingsSearchItem: Identifiable {
       keywords: ["sign out", "log out", "logout", "signout"], section: .account,
       icon: "person.circle", settingId: "account.signout"),
 
+    // Ollami
+    SettingsSearchItem(
+      name: "Ollama Server", subtitle: "URL for the local Ollama inference server",
+      keywords: ["ollama", "llm", "local ai", "model server", "url"],
+      section: .ollami, icon: "cpu", settingId: "ollami.ollama"),
+    SettingsSearchItem(
+      name: "Active Model", subtitle: "Which Ollama model to use for chat and memory",
+      keywords: ["model", "llm", "ollama model", "qwen", "llama", "mistral"],
+      section: .ollami, icon: "cpu", settingId: "ollami.ollama"),
+    SettingsSearchItem(
+      name: "Whisper Model", subtitle: "Speech-to-text model size (tiny / base / small / medium)",
+      keywords: ["whisper", "stt", "speech", "transcription", "faster-whisper", "model size"],
+      section: .ollami, icon: "waveform", settingId: "ollami.whisper"),
+    SettingsSearchItem(
+      name: "Backend URL", subtitle: "URL for the local FastAPI backend server",
+      keywords: ["backend", "fastapi", "server", "localhost", "port", "8080"],
+      section: .ollami, icon: "network", settingId: "ollami.backend"),
+    SettingsSearchItem(
+      name: "Webhook Plugins", subtitle: "URLs called when a conversation ends",
+      keywords: ["plugin", "webhook", "integration", "callback", "url"],
+      section: .ollami, icon: "puzzlepiece.extension", settingId: "ollami.plugins"),
+
     // About
     SettingsSearchItem(
       name: "Software Updates", subtitle: "Check for and manage app updates",
@@ -312,6 +334,7 @@ struct SettingsSidebar: View {
     .floatingBar,
     .shortcuts,
     .advanced,
+    .ollami,
     .about,
   ]
 
@@ -497,6 +520,7 @@ struct SettingsSidebarItem: View {
     case .floatingBar: return "sparkles"
     case .shortcuts: return "keyboard"
     case .advanced: return "chart.bar"
+    case .ollami: return "cpu"
     case .about: return "info.circle"
     }
   }
