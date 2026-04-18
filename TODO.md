@@ -65,8 +65,8 @@ Replace the upstream cloud backend with a self-contained FastAPI server.
 - [x] **2d** — Chroma vector store + local `nomic-embed-text` embeddings (replaces Pinecone + Typesense)
 - [x] **2e** — Local filesystem storage at `~/.ollami/data/` (replaces GCS)
 - [x] **2f** — Single-user local token auth middleware (replaces Firebase Auth)
-- [ ] **2g** — Trim routers from ~42 to ~15 keepers; delete payment, phone, OAuth, telemetry, firmware, announcement routers
-- [ ] **2h** — Plugin webhook dispatcher (`on_conversation_end`, `on_memory_created`, `on_chat_message`)
+- [x] **2g** — Trim routers from ~42 to ~15 keepers; delete payment, phone, OAuth, telemetry, firmware, announcement routers (resolved: cloud backend deleted in 1h; new backend built with only 5 routers)
+- [x] **2h** — Plugin webhook dispatcher (`on_conversation_end`, `on_memory_created`, `on_chat_message`)
 - [ ] **2i** — `requirements.txt` — strip to local-only dependencies (~180 packages removed)
 - [ ] **2j** — `backend/.env.local` — local config file with Ollama/Whisper/SQLite paths
 
