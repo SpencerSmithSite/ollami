@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from database.db import get_db
 from database.models import Memory, User
 from utils.memory.chroma_store import remove_memory, search_memories, upsert_memory
+from utils.plugins.dispatcher import ON_MEMORY_CREATED, dispatch
 
 router = APIRouter(prefix="/v1/memories", tags=["memories"])
 
@@ -61,6 +62,7 @@ async def create_memory(body: MemoryIn, db: Session = Depends(get_db)):
     m.embedding_id = m.id
     await upsert_memory(m.id, m.content)
     db.commit()
+    await dispatch(ON_MEMORY_CREATED, {"id": m.id, "content": m.content, "created_at": m.created_at.isoformat()})
     return m
 
 
