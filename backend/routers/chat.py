@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from database.db import SessionLocal, get_db
 from database.models import ChatSession, Message, User
 from utils.llm.ollama_client import chat_model, get_ollama
+from utils.plugins.dispatcher import ON_CHAT_MESSAGE, dispatch
 
 router = APIRouter(prefix="/v1/chat", tags=["chat"])
 
@@ -113,6 +114,9 @@ async def _stream_reply(session_id: str, content: str) -> AsyncIterator[str]:
         assistant_msg = Message(session_id=session_id, role="assistant", content=reply_text)
         db.add(assistant_msg)
         db.commit()
+        await dispatch(
+            ON_CHAT_MESSAGE, {"session_id": session_id, "user_message": content, "assistant_message": reply_text}
+        )
         yield "data: [DONE]\n\n"
     finally:
         db.close()
