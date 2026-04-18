@@ -1,172 +1,123 @@
-<div align="center">
+# Ollami
 
-# **omi**
+Local-first macOS AI assistant. No telemetry, no cloud, no third-party AI.
+Everything runs on your Mac via Ollama, faster-whisper, and SQLite.
 
-### A 2nd brain you trust more than your 1st
+Fork of [Omi](https://github.com/BasedHardware/omi) with all cloud dependencies removed.
 
-Omi captures your screen and conversations, transcribes in real-time, generates summaries and action items, and gives you an AI chat that remembers everything you've seen and heard. Works on desktop, phone and wearables. Fully open source.
+---
 
-Trusted by 300,000+ professionals.
+## What it is
 
+Ollami captures your screen and conversations, transcribes in real-time using faster-whisper on Apple Silicon, generates summaries and action items, and gives you an AI chat that remembers everything — powered entirely by a local Ollama model.
 
-[![Discord](https://img.shields.io/discord/1192313062041067520?label=Discord&logo=discord&logoColor=white&style=for-the-badge)](http://discord.omi.me)&ensp;
-[![GitHub Repo stars](https://img.shields.io/github/stars/BasedHardware/Omi?style=for-the-badge)](https://github.com/BasedHardware/Omi)&ensp;
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+**Architecture**
 
-[Website](https://omi.me/) · [Docs](https://docs.omi.me/) · [Discord](http://discord.omi.me) · [Twitter](https://x.com/kodjima33) · [DeepWiki](https://deepwiki.com/BasedHardware/omi)
-
-</div>
-
-## Quick Start
-
-<p align="center">
-  <a href="https://macos.omi.me"><img src="docs/assets/readme/download-macos-badge.png" alt="Download for macOS" height="50"></a>
-  <a href="https://apps.apple.com/us/app/friend-ai-wearable/id6502156163"><img src="docs/assets/readme/download-appstore-badge.png" alt="Download on the App Store" height="50"></a>
-  <a href="https://play.google.com/store/apps/details?id=com.friend.ios"><img src="docs/assets/readme/download-gplay-badge.png" alt="Get it on Google Play" height="50"></a>
-</p>
-
-<p align="center">
-  <a href="https://app.omi.me">Try in Browser</a>
-</p>
-
-```bash
-git clone https://github.com/BasedHardware/omi.git && cd omi/desktop && ./run.sh --yolo
+```
+macOS Swift App
+      │
+      ▼
+Local Python FastAPI  (localhost:8080)
+      │
+      ├── faster-whisper    — speech-to-text (Apple Silicon optimised)
+      ├── Ollama            — LLM for chat, summaries, action items
+      ├── SQLite            — conversation + memory storage
+      └── Chroma            — vector search (local embeddings via Ollama)
 ```
 
-Builds the macOS app, connects to the cloud backend, and launches. No env files, no credentials, no local backend.
+All data stays on your machine at `~/.ollami/`.
 
-> **Requirements:** macOS 14+, [Xcode](https://developer.apple.com/xcode/) (includes Swift & code signing), [Node.js](https://nodejs.org/)
+---
 
-<details>
-  <summary>Full Installation</summary>
-  
-For local development with the full backend stack:
+## Prerequisites
 
-1. Install prerequisites
+| Tool | Version | Install |
+|------|---------|---------|
+| macOS | 14+ | — |
+| Xcode | 15+ | App Store or `xcode-select --install` |
+| Ollama | latest | `brew install ollama` |
+| Python | 3.11+ | `brew install python@3.11` |
+
+Pull a model before starting:
 
 ```bash
-xcode-select --install
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+ollama pull llama3.2        # or any model you prefer
+ollama pull nomic-embed-text  # for vector search (Phase 2)
 ```
 
-2. Clone and configure
+---
+
+## Setup
+
+### 1. Clone
 
 ```bash
-git clone https://github.com/BasedHardware/omi.git
-cd omi/desktop
-cp Backend-Rust/.env.example Backend-Rust/.env
+git clone https://github.com/YOUR_USERNAME/ollami.git
+cd ollami
 ```
 
-3. Build and run
+### 2. Build and run the macOS app
 
 ```bash
+cd desktop
 ./run.sh
 ```
 
-See [desktop/README.md](desktop/README.md) for environment variables and credential setup.
+The app auto-generates a local token at `~/.ollami/token` on first launch.
+Open **Settings → Ollami** to configure the Ollama URL, active model, and Whisper model size.
 
+### 3. Local backend (Phase 2 — in progress)
 
-### Mobile App
+The Python backend replaces the upstream cloud services. Not yet complete — see `TODO.md` Phase 2 tasks.
+
+Once available:
 
 ```bash
-cd app && bash setup.sh ios    # or: bash setup.sh android
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --port 8080
 ```
 
-</details>
+---
 
-<details>
-  <summary>How it works</summary>
+## Configuration
 
+The **Settings → Ollami** panel exposes:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      Your Devices                       │
-│                                                         │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────────┐  │
-│  │ Omi      │  │ macOS App    │  │ Mobile App        │  │
-│  │ Wearable │  │ (Swift/Rust) │  │ (Flutter)         │  │
-│  └────┬─────┘  └──────┬───────┘  └────────┬──────────┘  │
-│       │    BLE         │   HTTPS/WS        │             │
-└───────┼────────────────┼───────────────────┼─────────────┘
-        │                │                   │
-        ▼                ▼                   ▼
-┌─────────────────────────────────────────────────────────┐
-│                    Omi Backend (Python)                  │
-│                                                         │
-│  ┌─────────┐  ┌──────────┐  ┌─────────┐  ┌──────────┐  │
-│  │ Listen  │  │ Pusher   │  │ VAD     │  │ Diarizer │  │
-│  │ (REST)  │  │ (WS)     │  │ (GPU)   │  │ (GPU)    │  │
-│  └─────────┘  └──────────┘  └─────────┘  └──────────┘  │
-│                                                         │
-│  ┌─────────┐  ┌──────────┐  ┌─────────┐  ┌──────────┐  │
-│  │ Deepgram│  │ Firestore│  │ Redis   │  │ LLMs     │  │
-│  │ (STT)   │  │ (DB)     │  │ (Cache) │  │ (AI)     │  │
-│  └─────────┘  └──────────┘  └─────────┘  └──────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Ollama URL | `http://localhost:11434` | Ollama server address |
+| Active model | (live list from Ollama) | Model used for chat and summaries |
+| Whisper model | `base` | `tiny` / `base` / `small` / `medium` |
+| Backend URL | `http://localhost:8080` | Local Python FastAPI address |
+| Plugins | — | Add webhook plugins by URL |
 
-| Component | Path | Stack |
-|-----------|------|-------|
-| **macOS app** | [`desktop/`](desktop/) | Swift, SwiftUI, Rust backend |
-| Mobile app | [`app/`](app/) | Flutter (iOS & Android) |
-| Backend API | [`backend/`](backend/) | Python, FastAPI, Firebase |
-| Firmware | [`omi/`](omi/) | nRF, Zephyr, C |
-| Omi Glass | [`omiGlass/`](omiGlass/) | ESP32-S3, C |
-| SDKs | [`sdks/`](sdks/) | React Native, Swift, Python |
-| AI Personas | [`web/personas-open-source/`](web/personas-open-source/) | Next.js |
+---
 
-</details>
+## What was removed from upstream Omi
 
-## Documentation
+- **Analytics** — Mixpanel, PostHog, Heap, Sentry, LangSmith, Datadog
+- **Cloud auth** — Firebase OAuth replaced with a local UUID token
+- **Cloud AI** — OpenAI, Anthropic, Deepgram, ElevenLabs replaced with local equivalents
+- **Payments** — Stripe, subscription plans, upgrade prompts
+- **Remote storage** — GCS replaced with `~/.ollami/data/`
+- **Mobile app** — iOS/Android Flutter app (macOS-only fork)
+- **Firmware** — Omi wearable and Omi Glasses firmware
+- **Cloud infrastructure** — Modal serverless, Firestore, Pinecone, Typesense, Twilio
 
-### Getting Started
-- [Introduction](https://docs.omi.me/)
-- [Quick Start Guide](https://docs.omi.me/quickstart)
-- [macOS App Development](desktop/README.md)
-- [Mobile App Setup](https://docs.omi.me/doc/developer/AppSetup)
-- [Backend Setup](https://docs.omi.me/doc/developer/backend/Backend_Setup)
-- [Contributing](https://docs.omi.me/doc/developer/Contribution)
+---
 
-### Building Apps
-- [App Development Guide](https://docs.omi.me/doc/developer/apps/Introduction)
-- [Example Apps](https://docs.omi.me/doc/developer/apps/examples/Github) — GitHub, Slack, OmiMentor
-- [Audio Streaming Apps](https://docs.omi.me/doc/developer/apps/AudioStreaming)
-- [Custom Chat Tools](https://docs.omi.me/doc/developer/apps/ChatTools)
-- [Submit to App Store](https://docs.omi.me/doc/developer/apps/Submitting)
+## Roadmap
 
-### API & SDKs
-- [API Reference](https://docs.omi.me/api-reference/introduction) — REST endpoints for memories, conversations, action items
-- [Python SDK](sdks/python/)
-- [Swift SDK](sdks/swift/)
-- [React Native SDK](sdks/react-native/)
-- [MCP Server](mcp/) — Model Context Protocol integration
+See [`TODO.md`](TODO.md) for the full task list.
 
-### Architecture
-- [Backend Deep Dive](https://docs.omi.me/doc/developer/backend/backend_deepdive)
-- [Transcription Pipeline](https://docs.omi.me/doc/developer/backend/transcription)
-- [Chat System](https://docs.omi.me/doc/developer/backend/chat_system)
-- [Audio Streaming Pipeline](https://docs.omi.me/doc/developer/backend/listen_pusher_pipeline)
-- [BLE Protocol](https://docs.omi.me/doc/developer/Protocol)
+- **Phase 1** — Strip telemetry and cloud from Swift app ✅
+- **Phase 2** — Local Python backend (SQLite, faster-whisper, Ollama) 🚧
+- **Phase 3** — Plugin support UI
+- **Phase 4** — Performance tuning, local TTS, Ollama agent
 
-## Omi Hardware
-![Omi](https://github.com/user-attachments/assets/7a658366-9e02-4057-bde5-a510e1f0217a)
-
-Open-source AI wearables that pair with the mobile app for 24h+ continuous capture.
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/834d3fdb-31b5-4f22-ae35-da3d2b9a8f59" alt="Omi Wearable" width="49%" />
-  <img src="https://github.com/user-attachments/assets/fdad4226-e5ce-4c55-b547-9101edfa3203" alt="Omi Glass" width="49%" />
-</p>
-
-- [Buy Omi](https://www.omi.me/pages/product)
-- [Buy Omi Glass Dev Kit](https://www.omi.me/glass) — ESP32-S3, camera + audio
-- [Open Source Hardware Designs](https://docs.omi.me/doc/hardware/consumer/electronics)
-- [Buying Guide](https://docs.omi.me/doc/assembly/Buying_Guide)
-- [Build the Device](https://docs.omi.me/doc/assembly/Build_the_device)
-- [Flash Firmware](https://docs.omi.me/doc/get_started/Flash_device)
-- [Integrate Your Wearable](https://docs.omi.me/doc/integrations)
-- [Hardware Specs](https://docs.omi.me/doc/hardware/DevKit2)
+---
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+MIT — same as upstream Omi.
