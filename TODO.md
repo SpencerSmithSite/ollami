@@ -47,7 +47,7 @@ See `PLAN.md` for full architecture details.
   - `desktop/Backend-Rust/` — Rust backend (replaced by local Python)
   - `desktop/demo/` — demo assets
 
-- [ ] **1i** — Rewrite `README.md` to describe Ollami instead of upstream Omi:
+- [x] **1i** — Rewrite `README.md` to describe Ollami instead of upstream Omi:
   - What it is (local-first macOS AI assistant)
   - Architecture diagram (Swift app → FastAPI → Ollama + faster-whisper + SQLite)
   - Prerequisites (Ollama, Python 3.11+, macOS 14+)
