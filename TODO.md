@@ -74,7 +74,7 @@ Replace the upstream cloud backend with a self-contained FastAPI server.
 
 ## Phase 3 — Plugin Support UI
 
-- [ ] **3a** — Plugin CRUD API (`GET/POST/DELETE /v1/plugins`) backed by SQLite
+- [x] **3a** — Plugin CRUD API (`GET/POST/DELETE /v1/plugins`) backed by SQLite
 - [ ] **3b** — Plugin manager in Swift settings panel (add by URL, select trigger events, enable/disable)
 
 ---
