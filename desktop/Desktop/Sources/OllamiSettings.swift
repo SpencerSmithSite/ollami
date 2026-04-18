@@ -8,13 +8,11 @@ class OllamiSettings: ObservableObject {
   private static let activeModelKey = "ollami.activeModel"
   private static let whisperModelKey = "ollami.whisperModel"
   private static let backendURLKey = "ollami.backendURL"
-  private static let pluginsKey = "ollami.plugins"
 
   @Published var ollamaURL: String
   @Published var activeModel: String
   @Published var whisperModel: String
   @Published var backendURL: String
-  @Published var plugins: [String]
 
   static let whisperModels: [(id: String, label: String)] = [
     ("tiny", "Tiny (fastest, ~75 MB)"),
@@ -29,7 +27,6 @@ class OllamiSettings: ObservableObject {
     activeModel = ud.string(forKey: Self.activeModelKey) ?? ""
     whisperModel = ud.string(forKey: Self.whisperModelKey) ?? "base"
     backendURL = ud.string(forKey: Self.backendURLKey) ?? "http://localhost:8080"
-    plugins = ud.stringArray(forKey: Self.pluginsKey) ?? []
   }
 
   func save() {
@@ -38,6 +35,5 @@ class OllamiSettings: ObservableObject {
     ud.set(activeModel, forKey: Self.activeModelKey)
     ud.set(whisperModel, forKey: Self.whisperModelKey)
     ud.set(backendURL, forKey: Self.backendURLKey)
-    ud.set(plugins, forKey: Self.pluginsKey)
   }
 }
