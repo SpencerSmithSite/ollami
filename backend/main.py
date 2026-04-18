@@ -9,17 +9,23 @@ from fastapi import FastAPI
 
 from database.db import init_db
 from routers import chat, conversations, files, memories, transcribe
+from utils.auth import LocalAuthMiddleware, _TOKEN_PATH, load_token
 from utils.stt.local_whisper import get_whisper
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    token = load_token()
+    print(f"[Ollami] auth token : {token}")
+    print(f"[Ollami] token file : {_TOKEN_PATH}")
     init_db()
     get_whisper()  # pre-load Whisper + VAD models on startup
     yield
 
 
 app = FastAPI(title="Ollami Backend", version="0.1.0", lifespan=lifespan)
+
+app.add_middleware(LocalAuthMiddleware)
 
 app.include_router(transcribe.router)
 app.include_router(conversations.router)
