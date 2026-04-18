@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from database.db import get_db
 from database.models import Conversation, Segment, User
 from utils.llm.ollama_client import chat_model, get_ollama
+from utils.plugins.dispatcher import ON_CONVERSATION_END, dispatch
 
 router = APIRouter(prefix="/v1/conversations", tags=["conversations"])
 
@@ -73,7 +74,7 @@ def list_conversations(db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=ConversationOut, status_code=201)
-def create_conversation(body: ConversationIn, db: Session = Depends(get_db)):
+async def create_conversation(body: ConversationIn, db: Session = Depends(get_db)):
     user = _ensure_user(db)
     conv = Conversation(user_id=user.id, transcript=body.transcript, source=body.source)
     db.add(conv)
@@ -90,7 +91,7 @@ def create_conversation(body: ConversationIn, db: Session = Depends(get_db)):
         )
     db.commit()
     db.refresh(conv)
-    return ConversationOut(
+    out = ConversationOut(
         id=conv.id,
         title=conv.title,
         summary=conv.summary,
@@ -98,6 +99,17 @@ def create_conversation(body: ConversationIn, db: Session = Depends(get_db)):
         created_at=conv.created_at,
         segment_count=len(conv.segments),
     )
+    await dispatch(
+        ON_CONVERSATION_END,
+        {
+            "id": conv.id,
+            "transcript": conv.transcript,
+            "source": conv.source,
+            "created_at": conv.created_at.isoformat(),
+            "segment_count": len(conv.segments),
+        },
+    )
+    return out
 
 
 @router.get("/{conv_id}", response_model=ConversationDetail)
