@@ -61,7 +61,7 @@ Replace the upstream cloud backend with a self-contained FastAPI server.
 
 - [x] **2a** — SQLite schema + SQLAlchemy models (replaces Firestore)
 - [x] **2b** — faster-whisper WebSocket STT handler (replaces Deepgram)
-- [ ] **2c** — Ollama LLM client + rewire all chat/memory/summary routes (replaces OpenAI/Anthropic)
+- [x] **2c** — Ollama LLM client + rewire all chat/memory/summary routes (replaces OpenAI/Anthropic)
 - [ ] **2d** — Chroma vector store + local `nomic-embed-text` embeddings (replaces Pinecone + Typesense)
 - [ ] **2e** — Local filesystem storage at `~/.ollami/data/` (replaces GCS)
 - [ ] **2f** — Single-user local token auth middleware (replaces Firebase Auth)
