@@ -27,6 +27,12 @@ app = FastAPI(title="Ollami Backend", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(LocalAuthMiddleware)
 
+
+@app.get("/")
+def health():
+    return {"status": "ok"}
+
+
 app.include_router(transcribe.router)
 app.include_router(conversations.router)
 app.include_router(memories.router)
