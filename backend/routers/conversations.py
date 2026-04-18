@@ -2,12 +2,12 @@ import json
 import re
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database.db import get_db
-from database.models import Conversation, Segment, User
+from database.models import ActionItem, Conversation, Segment, User
 from utils.llm.ollama_client import chat_model, get_ollama
 from utils.plugins.dispatcher import ON_CONVERSATION_END, dispatch
 
@@ -24,6 +24,9 @@ def _ensure_user(db: Session) -> User:
         db.commit()
         db.refresh(user)
     return user
+
+
+# ── Pydantic models ────────────────────────────────────────────────────────────
 
 
 class SegmentIn(BaseModel):
@@ -55,6 +58,35 @@ class ConversationDetail(ConversationOut):
     transcript: str | None
     segments: list[dict]
     action_items: list[dict]
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+
+def _to_export_dict(row: Conversation) -> dict:
+    return {
+        "id": row.id,
+        "title": row.title,
+        "summary": row.summary,
+        "source": row.source,
+        "created_at": row.created_at.isoformat(),
+        "transcript": row.transcript,
+        "segments": [
+            {"speaker": s.speaker, "text": s.text, "start": s.start_time, "end": s.end_time} for s in row.segments
+        ],
+        "action_items": [{"content": a.content, "completed": a.completed} for a in row.action_items],
+    }
+
+
+def _attachment(data: dict | list, filename: str) -> Response:
+    return Response(
+        content=json.dumps(data, indent=2, default=str),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ── Routes ────────────────────────────────────────────────────────────────────
 
 
 @router.get("", response_model=list[ConversationOut])
@@ -112,6 +144,63 @@ async def create_conversation(body: ConversationIn, db: Session = Depends(get_db
     return out
 
 
+# NOTE: /export and /import must be registered before /{conv_id} so FastAPI
+# matches the literal paths before the path parameter.
+
+
+@router.get("/export")
+def export_all(db: Session = Depends(get_db)):
+    rows = db.query(Conversation).order_by(Conversation.created_at.desc()).all()
+    return _attachment([_to_export_dict(r) for r in rows], "conversations.json")
+
+
+@router.post("/import", status_code=201)
+async def import_conversations(file: UploadFile, db: Session = Depends(get_db)):
+    raw = await file.read()
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=422, detail=f"invalid JSON: {exc}") from exc
+
+    records = payload if isinstance(payload, list) else [payload]
+    user = _ensure_user(db)
+    created_ids: list[str] = []
+
+    for rec in records:
+        conv = Conversation(
+            user_id=user.id,
+            title=rec.get("title"),
+            summary=rec.get("summary"),
+            source=rec.get("source", "import"),
+            transcript=rec.get("transcript"),
+        )
+        db.add(conv)
+        db.flush()
+
+        for seg in rec.get("segments", []):
+            db.add(
+                Segment(
+                    conversation_id=conv.id,
+                    speaker=seg.get("speaker"),
+                    text=seg.get("text", ""),
+                    start_time=seg.get("start"),
+                    end_time=seg.get("end"),
+                )
+            )
+        for item in rec.get("action_items", []):
+            db.add(
+                ActionItem(
+                    conversation_id=conv.id,
+                    content=item.get("content", ""),
+                    completed=item.get("completed", False),
+                )
+            )
+        created_ids.append(conv.id)
+
+    db.commit()
+    return {"imported": len(created_ids), "ids": created_ids}
+
+
 @router.get("/{conv_id}", response_model=ConversationDetail)
 def get_conversation(conv_id: str, db: Session = Depends(get_db)):
     row = db.get(Conversation, conv_id)
@@ -131,6 +220,15 @@ def get_conversation(conv_id: str, db: Session = Depends(get_db)):
         ],
         action_items=[{"id": a.id, "content": a.content, "completed": a.completed} for a in row.action_items],
     )
+
+
+@router.get("/{conv_id}/export")
+def export_one(conv_id: str, db: Session = Depends(get_db)):
+    row = db.get(Conversation, conv_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="conversation not found")
+    safe_title = re.sub(r"[^\w\-]", "_", row.title or conv_id)[:40]
+    return _attachment(_to_export_dict(row), f"conversation_{safe_title}.json")
 
 
 @router.delete("/{conv_id}", status_code=204)
