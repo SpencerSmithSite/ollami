@@ -68,7 +68,7 @@ Replace the upstream cloud backend with a self-contained FastAPI server.
 - [x] **2g** — Trim routers from ~42 to ~15 keepers; delete payment, phone, OAuth, telemetry, firmware, announcement routers (resolved: cloud backend deleted in 1h; new backend built with only 5 routers)
 - [x] **2h** — Plugin webhook dispatcher (`on_conversation_end`, `on_memory_created`, `on_chat_message`)
 - [x] **2i** — `requirements.txt` — strip to local-only dependencies (~180 packages removed) (resolved: built from scratch; removed unused cryptography dep; added missing python-multipart)
-- [ ] **2j** — `backend/.env.local` — local config file with Ollama/Whisper/SQLite paths
+- [x] **2j** — `backend/.env.local` — local config file with Ollama/Whisper/SQLite paths
 
 ---
 
