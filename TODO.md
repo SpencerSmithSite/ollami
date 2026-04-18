@@ -86,7 +86,7 @@ Replace the upstream cloud backend with a self-contained FastAPI server.
 - [ ] **4c** — Local Ollama tool-calling agent (replaces `acp-bridge`)
 - [ ] **4d** — Local TTS — Kokoro-TTS or piper-tts (replaces ElevenLabs)
 - [ ] **4e** — Conversation export/import to JSON
-- [ ] **4f** — `scripts/start.sh` — launcher that checks Ollama → starts backend → opens app
+- [x] **4f** — `scripts/start.sh` — launcher that checks Ollama → starts backend → opens app
 
 ---
 
