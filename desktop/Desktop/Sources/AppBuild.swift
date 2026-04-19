@@ -4,8 +4,7 @@ enum AppBuild {
   static let productionBundleIdentifier = "com.omi.computer-macos"
   private static let updateChannelDefaultsKey = "update_channel"
   private static let betaOverwriteMigrationKey = "didMigrateBetaOverwrite_v1"
-  private static let desktopAppcastURL = URL(
-    string: "https://api.omi.me/v2/desktop/appcast.xml?platform=macos")!
+
 
   static var bundleIdentifier: String {
     Bundle.main.bundleIdentifier ?? productionBundleIdentifier
@@ -149,43 +148,8 @@ enum AppBuild {
     return Int(raw)
   }
 
+  // Ollami is a local-only fork — no remote appcast, no update channel detection needed.
   private static func resolveFreshInstallUpdateChannelSynchronously(timeout: TimeInterval = 3) -> String {
-    let fallback = inferredUpdateChannel
-
-    if fallback == "beta" {
-      return "beta"
-    }
-
-    guard let currentBuild = currentBuildNumber else {
-      return fallback
-    }
-
-    let configuration = URLSessionConfiguration.ephemeral
-    configuration.timeoutIntervalForRequest = timeout
-    configuration.timeoutIntervalForResource = timeout
-
-    let session = URLSession(configuration: configuration)
-    let semaphore = DispatchSemaphore(value: 0)
-    var appcastXML: String?
-
-    let task = session.dataTask(with: desktopAppcastURL) { data, _, _ in
-      defer { semaphore.signal() }
-      guard let data, let xml = String(data: data, encoding: .utf8) else { return }
-      appcastXML = xml
-    }
-    task.resume()
-
-    let finishedInTime = semaphore.wait(timeout: .now() + timeout + 0.5) == .success
-    session.finishTasksAndInvalidate()
-
-    guard finishedInTime, let appcastXML else {
-      return fallback
-    }
-
-    return resolveFreshInstallUpdateChannel(
-      currentBuild: currentBuild,
-      fallback: fallback,
-      appcastXML: appcastXML
-    )
+    return "stable"
   }
 }

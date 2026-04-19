@@ -62,7 +62,7 @@ class TranscriptionService {
         var errorDescription: String? {
             switch self {
             case .missingBackendURL:
-                return "Python backend URL not configured (OMI_PYTHON_API_URL or api.omi.me)"
+                return "Backend URL not configured — set OMI_PYTHON_API_URL or start backend on localhost:8080"
             case .connectionFailed(let error):
                 return "Connection failed: \(error.localizedDescription)"
             case .invalidResponse:
@@ -98,15 +98,13 @@ class TranscriptionService {
     private let channels = 1  // Always mono for Python backend streaming
     private let streamingMode: StreamingMode
 
-    /// Python backend base URL for transcription endpoints.
-    /// Resolution order: OMI_PYTHON_API_URL → https://api.omi.me/
-    /// NOTE: Do NOT fall back to OMI_API_URL — that points to the Rust desktop-backend
-    /// (Cloud Run), which does not have /v2/voice-message/* or /v4/listen endpoints.
+    /// Local backend base URL for transcription endpoints.
+    /// Resolution order: OMI_PYTHON_API_URL → http://localhost:8080/
     private static let pythonBackendBaseURL: String = {
         if let cString = getenv("OMI_PYTHON_API_URL"), let url = String(validatingUTF8: cString), !url.isEmpty {
             return url.hasSuffix("/") ? url : url + "/"
         }
-        return "https://api.omi.me/"
+        return "http://localhost:8080/"
     }()
 
     // Reconnection (internal for @testable import)

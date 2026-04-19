@@ -99,7 +99,7 @@ if [ -d "$RESOURCE_BUNDLE" ]; then
 fi
 
 substep ".env — pointing app to local backend"
-printf 'OMI_API_URL=http://localhost:8080\n' > "$APP_BUNDLE/Contents/Resources/.env"
+printf 'OMI_API_URL=http://localhost:8080\nOMI_PYTHON_API_URL=http://localhost:8080\n' > "$APP_BUNDLE/Contents/Resources/.env"
 
 substep "App icon"
 cp -f omi_icon.icns "$APP_BUNDLE/Contents/Resources/OmiIcon.icns" 2>/dev/null || true
