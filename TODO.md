@@ -84,7 +84,7 @@ Replace the upstream cloud backend with a self-contained FastAPI server.
 - [x] **4a** — Whisper model benchmarking on Apple Silicon (latency/accuracy by size)
 - [x] **4b** — Ollama model benchmarking per task (qwen2.5 vs llama3.2 vs mistral)
 - [x] **4c** — Local Ollama tool-calling agent (replaces `acp-bridge`)
-- [ ] **4d** — Local TTS — Kokoro-TTS or piper-tts (replaces ElevenLabs)
+- [x] **4d** — Local TTS — Kokoro-TTS or piper-tts (replaces ElevenLabs)
 - [x] **4e** — Conversation export/import to JSON
 - [x] **4f** — `scripts/start.sh` — launcher that checks Ollama → starts backend → opens app
 
