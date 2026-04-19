@@ -303,6 +303,7 @@ struct SettingsContentView: View {
     case floatingBar = "Floating Bar"
     case shortcuts = "Shortcuts"
     case advanced = "Advanced"
+    case ollami = "Ollami"
     case about = "About"
   }
 
@@ -455,6 +456,8 @@ struct SettingsContentView: View {
           shortcutsSection
         case .advanced:
           advancedSection
+        case .ollami:
+          ollamiSection
         case .about:
           aboutSection
         }
@@ -1492,55 +1495,6 @@ struct SettingsContentView: View {
             updateRecordingPermission(newValue)
           }
 
-          Divider()
-
-          privacyToggleRow(
-            icon: "cloud.fill",
-            title: "Private Cloud Sync",
-            subtitle: "Sync your data securely to your private cloud storage",
-            isOn: $privateCloudSyncEnabled
-          ) { newValue in
-            updatePrivateCloudSync(newValue)
-          }
-        }
-      }
-
-      // Encryption
-      settingsCard(settingId: "privacy.encryption") {
-        VStack(alignment: .leading, spacing: 14) {
-          HStack(spacing: 10) {
-            Image(systemName: "shield.lefthalf.filled")
-              .scaledFont(size: 14)
-              .foregroundColor(OmiColors.purplePrimary)
-              .frame(width: 20)
-
-            Text("Encryption")
-              .scaledFont(size: 14, weight: .medium)
-              .foregroundColor(OmiColors.textPrimary)
-          }
-
-          HStack(spacing: 10) {
-            Image(systemName: "checkmark.circle.fill")
-              .scaledFont(size: 12)
-              .foregroundColor(.green)
-              .frame(width: 20, alignment: .leading)
-
-            Text("Server-side encryption")
-              .scaledFont(size: 13)
-              .foregroundColor(OmiColors.textSecondary)
-
-            Text("Active")
-              .scaledFont(size: 10, weight: .semibold)
-              .foregroundColor(.green)
-              .padding(.horizontal, 5)
-              .padding(.vertical, 1)
-              .background(Color.green.opacity(0.15))
-              .cornerRadius(3)
-          }
-
-          Text("Your data is encrypted and stored securely with Google Cloud infrastructure.")
-            .scaledFont(size: 12)
-            .foregroundColor(OmiColors.textTertiary)
         }
       }
 
@@ -2073,6 +2027,10 @@ struct SettingsContentView: View {
 
   private var shortcutsSection: some View {
     ShortcutsSettingsSection(highlightedSettingId: $highlightedSettingId)
+  }
+
+  private var ollamiSection: some View {
+    OllamiSettingsSection(highlightedSettingId: $highlightedSettingId)
   }
 
   private var aiChatSection: some View {
@@ -5324,8 +5282,7 @@ struct SettingsContentView: View {
             .background(OmiColors.backgroundQuaternary)
 
           // Links
-          linkRow(title: "Visit Website", url: "https://omi.me")
-          linkRow(title: "Help Center", url: "https://help.omi.me")
+          linkRow(title: "GitHub Repository", url: "https://github.com/SpencerSmithSite/Ollami")
           Button(action: {
             selectedSection = .privacy
           }) {
@@ -5342,7 +5299,6 @@ struct SettingsContentView: View {
             }
           }
           .buttonStyle(.plain)
-          linkRow(title: "Terms of Service", url: "https://omi.me/terms")
         }
       }
 
@@ -5452,9 +5408,6 @@ struct SettingsContentView: View {
         Button("Stay on Beta", role: .cancel) {}
         Button("Switch to Stable") {
           updaterViewModel.updateChannel = .stable
-          if let url = URL(string: "https://macos.omi.me") {
-            NSWorkspace.shared.open(url)
-          }
         }
       } message: {
         let stableVersion = updaterViewModel.latestStableVersionString ?? "an older version"
