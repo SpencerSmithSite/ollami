@@ -160,14 +160,14 @@ struct OnboardingNotificationStepView: View {
                     )
                     .frame(width: 36, height: 36)
 
-                Text("omi")
+                Text("ollami")
                     .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
 
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
-                    Text("omi")
+                    Text("ollami")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.black)
 

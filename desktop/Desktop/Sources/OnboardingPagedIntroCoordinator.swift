@@ -174,7 +174,7 @@ final class OnboardingPagedIntroCoordinator: ObservableObject {
       }
     }
 
-    return "Omi is still building a clearer picture from the sources connected so far."
+    return "Ollami is still building a clearer picture from the sources connected so far."
   }
 
   func importedMemoryCount(for source: OnboardingMemoryLogSource) -> Int {
@@ -244,7 +244,7 @@ final class OnboardingPagedIntroCoordinator: ObservableObject {
 
     let panel = NSOpenPanel()
     panel.title = "Select your Apple Notes data folder"
-    panel.message = "Choose the Apple Notes group container so Omi can sync your notes."
+    panel.message = "Choose the Apple Notes group container so Ollami can sync your notes."
     panel.prompt = "Select Folder"
     panel.canChooseFiles = false
     panel.canChooseDirectories = true
@@ -736,7 +736,7 @@ final class OnboardingPagedIntroCoordinator: ObservableObject {
 
         let summary =
           result.profileSummary.isEmpty
-          ? "Your calendar is busy enough that Omi can start surfacing deadlines and prep work."
+          ? "Your calendar is busy enough that Ollami can start surfacing deadlines and prep work."
           : result.profileSummary
 
         await self.saveGraph(

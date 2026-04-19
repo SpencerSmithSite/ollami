@@ -18,7 +18,7 @@ struct OnboardingExportsStepView: View {
       totalSteps: totalSteps,
       eyebrow: "",
       title: "Put your memories where you work.",
-      description: "Connect the tools where you want Omi context to live.",
+      description: "Connect the tools where you want Ollami context to live.",
       rightPaneFooterText: summaryText,
       onForceComplete: onForceComplete
     ) {
@@ -147,13 +147,13 @@ private struct OnboardingInlineExportPanel: View {
       switch destination {
       case .notion:
         inlineInfoCard(
-          "Omi copies a ready-to-paste memory page, saves a backup in Downloads, and opens Notion."
+          "Ollami copies a ready-to-paste memory page, saves a backup in Downloads, and opens Notion."
         )
 
       case .obsidian:
         inlineInfoCard(
           model.obsidianVaultPath.isEmpty
-            ? "Pick your Obsidian vault once. Omi will keep refreshing `Omi/Memories.md` there."
+            ? "Pick your Obsidian vault once. Ollami will keep refreshing `Ollami/Memories.md` there."
             : model.obsidianVaultPath
         )
 
@@ -166,7 +166,7 @@ private struct OnboardingInlineExportPanel: View {
 
       case .chatgpt, .claude, .gemini:
         inlineInfoCard(
-          "Omi copies the prompt and memory pack together, saves a Markdown backup, and opens \(destination.title)."
+          "Ollami copies the prompt and memory pack together, saves a Markdown backup, and opens \(destination.title)."
         )
       }
 

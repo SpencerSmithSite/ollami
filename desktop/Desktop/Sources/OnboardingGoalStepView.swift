@@ -21,7 +21,7 @@ struct OnboardingGoalStepView: View {
       eyebrow: "Goal",
       title: "Pick one goal.",
       description:
-        "Selecting a correct and detailed goal is very important - Omi will optimize all advice to achieve that goal. Make sure your goal contains a number to measure progress.",
+        "Selecting a correct and detailed goal is very important - Ollami will optimize all advice to achieve that goal. Make sure your goal contains a number to measure progress.",
       onForceComplete: onForceComplete
     ) {
       VStack(alignment: .leading, spacing: 18) {

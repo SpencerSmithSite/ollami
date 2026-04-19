@@ -14,7 +14,7 @@ struct OnboardingWelcomeStepView: View {
       stepIndex: stepIndex,
       totalSteps: totalSteps,
       eyebrow: "Name",
-      title: "What should Omi call you?",
+      title: "What should Ollami call you?",
       description: "",
       layoutMode: .centered,
       onForceComplete: onForceComplete
