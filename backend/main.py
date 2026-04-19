@@ -8,7 +8,7 @@ load_dotenv(".env.local", override=False)
 from fastapi import FastAPI
 
 from database.db import init_db
-from routers import agent, chat, conversations, files, memories, plugins, transcribe
+from routers import agent, chat, conversations, files, memories, plugins, transcribe, tts
 from utils.auth import LocalAuthMiddleware, _TOKEN_PATH, load_token
 from utils.stt.local_whisper import get_whisper
 
@@ -34,6 +34,7 @@ def health():
 
 
 app.include_router(agent.router)
+app.include_router(tts.router)
 app.include_router(transcribe.router)
 app.include_router(conversations.router)
 app.include_router(memories.router)
