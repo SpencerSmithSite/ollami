@@ -1,5 +1,7 @@
 # Ollami
 
+![Ollami onboarding screen](docs/assets/screenshot.png)
+
 Local-first macOS AI assistant. No telemetry, no cloud, no third-party AI.
 Everything runs on your Mac via Ollama, faster-whisper, and SQLite.
 
